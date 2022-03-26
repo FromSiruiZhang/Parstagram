@@ -13,10 +13,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import com.parse.FindCallback
-import com.parse.ParseException
-import com.parse.ParseQuery
-import com.parse.ParseUser
+import com.parse.*
 import java.io.File
 
 //Let user create a post by taking a photo with their camera
@@ -39,24 +36,27 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnSubmit).setOnClickListener{
             // Launch camera to let user take picture
             val description = findViewById<EditText>(R.id.description).text.toString()
-
             val user = ParseUser.getCurrentUser()
-            submitPost(description, user)
+            if (photoFile != null){
+                submitPost(description, user, photoFile!!)
+            } else {
+                // TODO: print error log message
+            }
         }
 
         findViewById<Button>(R.id.btnTakePicture).setOnClickListener{
-            // send post to server without an image
-            // gets description
+            onLaunchCamera()
         }
 //        queryPost()
     }
 
     // Send a post object to our Parse server
-    fun submitPost(description: String, user: ParseUser){
+    fun submitPost(description: String, user: ParseUser, file: File){
         // Create the post object
         val post = Post()
         post.setDescription(description)
         post.setUser(user)
+        post.setImage(ParseFile(file))
         post.saveInBackground{ exception->
             if (exception != null){
                 // Something has went wrong
@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                 // TODO: Show a toast to tell user something went wrong with saving post
             } else {
                 Log.i(TAG, "Successfully saved post")
+                Toast.makeText(this, "Successfully submitted!", Toast.LENGTH_SHORT).show()
                 // TODO: Reset the EditText field to be empty
                 // TODO: Reset the ImageView to empty
             }
